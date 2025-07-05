@@ -44,12 +44,26 @@
                      <span id="db-status-text">연결중</span>
                  </div>
             </div>
-            <div class="space-y-4 text-lg">
+            <div class="space-y-4 text-lg flex-grow">
                 <div><p class="text-slate-500">진행시간</p><p><span id="timer" class="font-bold text-indigo-600 text-2xl">0</span> s</p></div>
                 <div><p class="text-slate-500">현재타수(타/분)</p><p><span id="wpm" class="font-bold text-indigo-600 text-2xl">0</span></p></div>
                 <div><p class="text-slate-500">최고타수(타/분)</p><p><span id="peak-wpm" class="font-bold text-indigo-600 text-2xl">0</span></p></div>
                 <div><p class="text-slate-500">정확도(%)</p><p><span id="accuracy" class="font-bold text-indigo-600 text-2xl">100</span> %</p></div>
                 <div><p class="text-slate-500">점수</p><p><span id="score" class="font-bold text-indigo-600 text-2xl">0</span></p></div>
+            </div>
+            <div class="mt-auto pt-4 space-y-2">
+                 <div id="user-profile" class="hidden items-center gap-3 p-2 rounded-lg bg-slate-200">
+                    <img id="user-photo" class="w-10 h-10 rounded-full" src="" alt="User photo">
+                    <div class="flex-grow truncate">
+                        <p id="user-name" class="font-semibold text-sm truncate"></p>
+                        <button id="logout-btn" class="text-xs text-red-500 hover:underline">로그아웃</button>
+                    </div>
+                </div>
+                <button id="login-btn" class="w-full flex items-center justify-center gap-2 bg-white border border-indigo-600 text-indigo-600 hover:bg-indigo-50 font-bold py-2 px-4 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M15.545 6.558a9.42 9.42 0 0 1 .139 1.626c0 2.434-.87 4.492-2.384 5.885h.002C11.978 15.292 10.158 16 8 16A8 8 0 1 1 8 0a7.689 7.689 0 0 1 5.352 2.082l-2.284 2.284A4.347 4.347 0 0 0 8 3.166c-2.087 0-3.86 1.408-4.492 3.304a4.792 4.792 0 0 0 0 3.063h.003c.635 1.893 2.405 3.301 4.492 3.301 1.078 0 2.004-.276 2.722-.764h-.003a3.702 3.702 0 0 0 1.599-2.431H8v-3.08h7.545z"/></svg>
+                    <span>Google 로그인</span>
+                </button>
+                <p class="text-xs text-slate-400 text-center">Version 2.2.0</p>
             </div>
         </div>
 
@@ -105,7 +119,7 @@
                             </div>
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold mb-2">기본 단어 목록</h3>
+                            <h3 class="text-lg font-semibold mb-2">단어 목록 선택</h3>
                             <div id="category-options" class="flex flex-wrap gap-2"></div>
                         </div>
                         <div>
@@ -118,7 +132,7 @@
                             
                             <h4 class="text-md font-semibold mt-4 mb-2">저장된 목록</h4>
                             <div id="saved-lists-container" class="w-full h-24 p-2 border rounded-md overflow-y-auto bg-slate-100">
-                                <p class="text-slate-400">저장된 단어장이 없습니다.</p>
+                                <p class="text-slate-400">목록 로딩 중...</p>
                             </div>
                         </div>
                     </div>
@@ -134,7 +148,7 @@
     <script type="module">
         // Firebase SDK
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, collection, getDoc, getDocs, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- DOM 요소 ---
@@ -165,6 +179,11 @@
         const savedListsContainer = document.getElementById('saved-lists-container');
         const dbStatusDot = document.getElementById('db-status-dot');
         const dbStatusText = document.getElementById('db-status-text');
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userProfileDiv = document.getElementById('user-profile');
+        const userNameSpan = document.getElementById('user-name');
+        const userPhotoImg = document.getElementById('user-photo');
 
         // --- Firebase 설정 ---
         let db, auth, userId, unsubscribeLists;
@@ -181,13 +200,14 @@
         }
 
         // --- 단어 데이터 ---
-        const wordData = {
+        const baseWordData = {
             '초등 공통': [ { en: "apple", kr: "사과" }, { en: "banana", kr: "바나나" }, { en: "cat", kr: "고양이" }, { en: "dog", kr: "개" }, { en: "book", kr: "책" }, { en: "desk", kr: "책상" }, { en: "chair", kr: "의자" }, { en: "red", kr: "빨간색" } ],
             '초3': [ { en: "ant", kr: "개미" }, { en: "bed", kr: "침대" }, { en: "cup", kr: "컵" }, { en: "egg", kr: "달걀" }, { en: "fat", kr: "뚱뚱한" }, { en: "good", kr: "좋은" }, { en: "hot", kr: "더운" }, { en: "ink", kr: "잉크" } ],
             '초4': [ { en: "ball", kr: "공" }, { en: "cold", kr: "추운" }, { en: "door", kr: "문" }, { en: "face", kr: "얼굴" }, { en: "game", kr: "게임" }, { en: "hand", kr: "손" }, { en: "jump", kr: "뛰다" }, { en: "kind", kr: "친절한" } ],
             '초5': [ { en: "animal", kr: "동물" }, { en: "blue", kr: "파란색" }, { en: "class", kr: "수업" }, { en: "drink", kr: "마시다" }, { en: "english", kr: "영어" }, { en: "family", kr: "가족" }, { en: "great", kr: "훌륭한" }, { en: "happy", kr: "행복한" } ],
             '초6': [ { en: "always", kr: "항상" }, { en: "because", kr: "왜냐하면" }, { en: "country", kr: "나라" }, { en: "different", kr: "다른" }, { en: "enjoy", kr: "즐기다" }, { en: "favorite", kr: "가장 좋아하는" }, { en: "group", kr: "그룹" }, { en: "hobby", kr: "취미" } ]
         };
+        let wordData = { ...baseWordData };
 
         // --- 게임 상태 및 설정 ---
         let score = 0, time = 0, typedIndex = 0;
@@ -212,6 +232,8 @@
         speakBtn.addEventListener('click', () => {
             if (currentWord.en && isGameActive) speak(currentWord.en);
         });
+        loginBtn.addEventListener('click', signInWithGoogle);
+        logoutBtn.addEventListener('click', signOutUser);
 
         // --- 함수 ---
         function isModalVisible() {
@@ -221,9 +243,65 @@
         }
 
         function initialize() {
-            // 기본 카테고리 라디오 버튼 생성
-            const defaultCategories = Object.keys(wordData);
-            defaultCategories.forEach(category => {
+            renderCategoryOptions();
+            window.addEventListener('click', () => {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }, { once: true });
+
+            if(auth) {
+                onAuthStateChanged(auth, user => {
+                    if (user && !user.isAnonymous) {
+                        // 정식 로그인 사용자
+                        userId = user.uid;
+                        userNameSpan.textContent = user.displayName;
+                        userPhotoImg.src = user.photoURL;
+                        userProfileDiv.classList.remove('hidden');
+                        userProfileDiv.classList.add('flex');
+                        loginBtn.classList.add('hidden');
+                        updateDbStatus('connected', '로그인 됨');
+                        listenForCustomWordLists();
+                    } else {
+                        // 로그아웃 상태
+                        userId = null;
+                        userProfileDiv.classList.add('hidden');
+                        userProfileDiv.classList.remove('flex');
+                        loginBtn.classList.remove('hidden');
+                        updateDbStatus('error', '로그인 필요');
+                        if (unsubscribeLists) unsubscribeLists();
+                        wordData = { ...baseWordData };
+                        displaySavedLists([]);
+                        renderCategoryOptions();
+                    }
+                });
+            }
+        }
+        
+        async function signInWithGoogle() {
+            if (!auth) return;
+            const provider = new GoogleAuthProvider();
+            try {
+                await signInWithPopup(auth, provider);
+                // onAuthStateChanged가 나머지 UI 업데이트를 처리합니다.
+            } catch (error) {
+                console.error("Google 로그인 실패:", error);
+                alert("Google 로그인에 실패했습니다. 팝업 차단을 해제했는지 확인해주세요.");
+            }
+        }
+
+        async function signOutUser() {
+            if (!auth) return;
+            try {
+                await signOut(auth);
+                 // onAuthStateChanged가 나머지 UI 업데이트를 처리합니다.
+            } catch (error) {
+                console.error("로그아웃 실패:", error);
+            }
+        }
+
+        function renderCategoryOptions() {
+            categoryOptions.innerHTML = '';
+            const allCategories = Object.keys(wordData);
+            allCategories.forEach(category => {
                 const label = document.createElement('label');
                 label.className = "flex items-center gap-2 p-2 border rounded-md cursor-pointer";
                 const input = document.createElement('input');
@@ -233,34 +311,6 @@
                 label.append(category);
                 categoryOptions.appendChild(label);
             });
-            // 사용자 정의 카테고리 라디오 버튼 추가
-            const customLabel = document.createElement('label');
-            customLabel.className = "flex items-center gap-2 p-2 border rounded-md cursor-pointer";
-            const customInput = document.createElement('input');
-            customInput.type = 'radio'; customInput.name = 'category'; customInput.value = '사용자 정의';
-            customLabel.appendChild(customInput);
-            customLabel.append('나만의 단어장');
-            categoryOptions.appendChild(customLabel);
-
-
-            window.addEventListener('click', () => {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }, { once: true });
-
-            if(auth) {
-                onAuthStateChanged(auth, user => {
-                    if (user) {
-                        userId = user.uid;
-                        updateDbStatus('connected', '자동 저장');
-                        listenForCustomWordLists();
-                    } else {
-                        signInAnonymously(auth).catch(error => {
-                            console.error("익명 로그인 실패:", error);
-                            updateDbStatus('error', '연결 실패');
-                        });
-                    }
-                });
-            }
         }
 
         function updateDbStatus(status, text) {
@@ -274,56 +324,51 @@
             if (!userId) return;
             const listsCollectionRef = collection(db, "artifacts", appId, "users", userId, "customWordLists");
             
-            if (unsubscribeLists) unsubscribeLists(); // 이전 리스너 해제
+            if (unsubscribeLists) unsubscribeLists();
 
             unsubscribeLists = onSnapshot(listsCollectionRef, (querySnapshot) => {
-                const lists = [];
+                const customLists = {};
                 querySnapshot.forEach((doc) => {
-                    lists.push({ id: doc.id, ...doc.data() });
+                    customLists[doc.id] = doc.data().words || [];
                 });
-                displaySavedLists(lists);
+                wordData = { ...baseWordData, ...customLists };
+                displaySavedLists(Object.keys(customLists));
+                renderCategoryOptions();
             }, (error) => {
                 console.error("단어장 목록 실시간 업데이트 실패:", error);
+                savedListsContainer.innerHTML = '<p class="text-red-500">목록을 불러오지 못했습니다.</p>';
             });
         }
 
-        function displaySavedLists(lists) {
+        function displaySavedLists(listNames) {
             savedListsContainer.innerHTML = '';
-            if (lists.length === 0) {
+            if (listNames.length === 0) {
                 savedListsContainer.innerHTML = '<p class="text-slate-400">저장된 단어장이 없습니다.</p>';
                 return;
             }
-            lists.forEach(list => {
+            listNames.forEach(listId => {
                 const div = document.createElement('div');
                 div.className = 'flex justify-between items-center p-2 hover:bg-slate-200 rounded-md';
                 div.innerHTML = `
-                    <span class="truncate pr-2">${list.id}</span>
+                    <span class="truncate pr-2">${listId}</span>
                     <div class="flex gap-2 flex-shrink-0">
-                        <button data-list-id="${list.id}" class="load-btn text-xs bg-green-500 text-white px-2 py-1 rounded">불러오기</button>
-                        <button data-list-id="${list.id}" class="delete-btn text-xs bg-red-500 text-white px-2 py-1 rounded">삭제</button>
+                        <button data-list-id="${listId}" class="load-btn text-xs bg-green-500 text-white px-2 py-1 rounded">불러오기</button>
+                        <button data-list-id="${listId}" class="delete-btn text-xs bg-red-500 text-white px-2 py-1 rounded">삭제</button>
                     </div>
                 `;
                 savedListsContainer.appendChild(div);
             });
 
-            document.querySelectorAll('.load-btn').forEach(btn => btn.addEventListener('click', (e) => loadList(e.target.dataset.listId)));
+            document.querySelectorAll('.load-btn').forEach(btn => btn.addEventListener('click', (e) => loadListToEditor(e.target.dataset.listId)));
             document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', (e) => deleteList(e.target.dataset.listId)));
         }
         
-        async function loadList(listId) {
-            if (!userId) return;
-            const docRef = doc(db, "artifacts", appId, "users", userId, "customWordLists", listId);
-            try {
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    const words = docSnap.data().words || [];
-                    customListNameInput.value = listId;
-                    customWordsInput.value = words.map(w => `${w.en},${w.kr}`).join('\n');
-                    document.querySelector('input[name="category"][value="사용자 정의"]').checked = true;
-                }
-            } catch (error) {
-                console.error("단어장 불러오기 실패:", error);
-            }
+        function loadListToEditor(listId) {
+            const words = wordData[listId] || [];
+            customListNameInput.value = listId;
+            customWordsInput.value = words.map(w => `${w.en},${w.kr}`).join('\n');
+            const radioToSelect = document.querySelector(`input[name="category"][value="${listId}"]`);
+            if (radioToSelect) radioToSelect.checked = true;
         }
 
         async function deleteList(listId) {
@@ -337,10 +382,17 @@
         }
 
         async function saveCurrentList() {
-            if (!userId) return;
+            if (!userId) {
+                alert("단어장을 저장하려면 먼저 로그인해주세요.");
+                return;
+            }
             const listName = customListNameInput.value.trim();
             if (!listName) {
                 alert("단어장 이름을 입력해주세요.");
+                return;
+            }
+            if (baseWordData[listName]) {
+                alert("기본 단어장과 동일한 이름으로는 저장할 수 없습니다.");
                 return;
             }
             
@@ -362,7 +414,7 @@
             const docRef = doc(db, "artifacts", appId, "users", userId, "customWordLists", listName);
             try {
                 await setDoc(docRef, { words: parsedWords });
-                updateDbStatus('connected', '자동 저장');
+                updateDbStatus('connected', '로그인 됨');
             } catch (error) {
                 console.error("단어장 저장 실패:", error);
                 updateDbStatus('error', '저장 실패');
@@ -371,33 +423,17 @@
 
         function applySettingsAndStart() {
             timeLimit = parseInt(document.querySelector('input[name="time"]:checked').value, 10);
-            const selectedCategory = document.querySelector('input[name="category"]:checked').value;
-
-            if (selectedCategory === '사용자 정의') {
-                 const customWordsText = customWordsInput.value.trim();
-                 const parsedWords = customWordsText.split('\n').map(line => {
-                    const parts = line.split(',');
-                    if (parts.length === 2 && parts[0].trim() && parts[1].trim()) {
-                        return { en: parts[0].trim(), kr: parts[1].trim() };
-                    }
-                    return null;
-                }).filter(Boolean);
-
-                if(parsedWords.length > 0) {
-                    wordData['사용자 정의'] = parsedWords;
-                    currentCategory = '사용자 정의';
-                } else {
-                    alert('사용자 정의 단어 목록이 비어있습니다. 기본 단어 목록으로 시작합니다.');
-                    currentCategory = '초등 공통';
-                }
-            } else {
-                 currentCategory = selectedCategory;
+            const selectedCategoryRadio = document.querySelector('input[name="category"]:checked');
+            
+            if (!selectedCategoryRadio) {
+                alert("학습할 단어 목록을 선택해주세요.");
+                return;
             }
+            currentCategory = selectedCategoryRadio.value;
             
             closeSettings();
             startGame();
         }
-
 
         function playErrorSound() {
             if (!audioCtx) return;
@@ -451,10 +487,9 @@
                 openSettings(); return;
             }
 
-            loadNextWord();
-
             startModal.classList.add('hidden');
             gameOverScreen.classList.add('hidden');
+            settingsModal.classList.add('hidden');
             typingArea.focus();
 
             clearInterval(gameInterval);
