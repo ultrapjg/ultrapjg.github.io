@@ -9,64 +9,26 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Noto Sans KR', sans-serif;
-        }
-        .font-mono {
-            font-family: 'Roboto Mono', monospace;
-        }
-        .shake {
-            animation: shake 0.4s;
-        }
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        .font-mono { font-family: 'Roboto Mono', monospace; }
+        .shake { animation: shake 0.4s; }
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-2px); }
             75% { transform: translateX(2px); }
         }
-        /* 스크롤바 스타일 */
-        #custom-words-input::-webkit-scrollbar { width: 8px; }
-        #custom-words-input::-webkit-scrollbar-track { background: #f1f5f9; }
-        #custom-words-input::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-        #custom-words-input::-webkit-scrollbar-thumb:hover { background: #64748b; }
-
-        /* 실시간 입력창 스타일 */
-        #typing-area {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            border: 2px solid #cbd5e1; /* slate-300 */
-            border-radius: 0.5rem;
-            min-height: 80px;
-            cursor: text;
-        }
-        #typing-area .char {
-            font-size: 2.25rem; /* text-4xl */
-            font-weight: 700;
-            transition: color 0.1s, transform 0.1s;
-        }
-        /* 입력 대기중인 글자 (플레이스홀더) */
-        #typing-area .char-placeholder {
-            color: #d1d5db; /* gray-300 */
-        }
-        /* 현재 입력할 글자 (커서) */
-        #typing-area .char-active {
-            color: #9ca3af; /* gray-400 */
-            border-bottom: 3px solid #6366f1; /* indigo-600 */
-            animation: blink 1s infinite;
-        }
-        @keyframes blink {
-            50% { border-bottom-color: transparent; }
-        }
-        /* 맞게 입력한 글자 */
-        #typing-area .char-correct {
-            color: #1f2937; /* gray-800 */
-        }
-        /* 틀리게 입력한 글자 */
-        #typing-area .char-incorrect {
-            color: #ef4444; /* red-500 */
-            transform: scale(1.1);
-        }
+        #custom-words-input::-webkit-scrollbar, #saved-lists-container::-webkit-scrollbar { width: 8px; }
+        #custom-words-input::-webkit-scrollbar-track, #saved-lists-container::-webkit-scrollbar-track { background: #f1f5f9; }
+        #custom-words-input::-webkit-scrollbar-thumb, #saved-lists-container::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        #custom-words-input::-webkit-scrollbar-thumb:hover, #saved-lists-container::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        #typing-area { display: flex; align-items: center; justify-content: center; padding: 1rem; border: 2px solid #cbd5e1; border-radius: 0.5rem; min-height: 80px; cursor: text; }
+        #typing-area .char { font-size: 2.25rem; font-weight: 700; transition: color 0.1s, transform 0.1s; }
+        #typing-area .char-placeholder { color: #d1d5db; }
+        #typing-area .char-active { color: #9ca3af; border-bottom: 3px solid #6366f1; animation: blink 1s infinite; }
+        @keyframes blink { 50% { border-bottom-color: transparent; } }
+        #typing-area .char-correct { color: #1f2937; }
+        #typing-area .char-incorrect { color: #ef4444; transform: scale(1.1); }
+        #db-status-dot { width: 10px; height: 10px; border-radius: 50%; transition: background-color 0.5s; }
     </style>
 </head>
 <body class="bg-slate-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
@@ -75,28 +37,19 @@
         
         <!-- 왼쪽 정보 패널 -->
         <div class="w-full md:w-64 bg-slate-50 p-6 rounded-lg flex flex-col gap-6 order-2 md:order-1">
-            <h2 class="text-xl font-bold text-slate-700 border-b pb-3">진행 통계</h2>
+            <div class="flex justify-between items-center border-b pb-3">
+                 <h2 class="text-xl font-bold text-slate-700">진행 통계</h2>
+                 <div id="db-status" class="flex items-center gap-2 text-sm text-slate-400">
+                     <div id="db-status-dot" class="bg-gray-400"></div>
+                     <span id="db-status-text">연결중</span>
+                 </div>
+            </div>
             <div class="space-y-4 text-lg">
-                <div>
-                    <p class="text-slate-500">진행시간</p>
-                    <p><span id="timer" class="font-bold text-indigo-600 text-2xl">0</span> s</p>
-                </div>
-                <div>
-                    <p class="text-slate-500">현재타수(타/분)</p>
-                    <p><span id="wpm" class="font-bold text-indigo-600 text-2xl">0</span></p>
-                </div>
-                 <div>
-                    <p class="text-slate-500">최고타수(타/분)</p>
-                    <p><span id="peak-wpm" class="font-bold text-indigo-600 text-2xl">0</span></p>
-                </div>
-                <div>
-                    <p class="text-slate-500">정확도(%)</p>
-                    <p><span id="accuracy" class="font-bold text-indigo-600 text-2xl">100</span> %</p>
-                </div>
-                 <div>
-                    <p class="text-slate-500">점수</p>
-                    <p><span id="score" class="font-bold text-indigo-600 text-2xl">0</span></p>
-                </div>
+                <div><p class="text-slate-500">진행시간</p><p><span id="timer" class="font-bold text-indigo-600 text-2xl">0</span> s</p></div>
+                <div><p class="text-slate-500">현재타수(타/분)</p><p><span id="wpm" class="font-bold text-indigo-600 text-2xl">0</span></p></div>
+                <div><p class="text-slate-500">최고타수(타/분)</p><p><span id="peak-wpm" class="font-bold text-indigo-600 text-2xl">0</span></p></div>
+                <div><p class="text-slate-500">정확도(%)</p><p><span id="accuracy" class="font-bold text-indigo-600 text-2xl">100</span> %</p></div>
+                <div><p class="text-slate-500">점수</p><p><span id="score" class="font-bold text-indigo-600 text-2xl">0</span></p></div>
             </div>
         </div>
 
@@ -108,7 +61,6 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 16 16"><path d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311a1.464 1.464 0 0 1-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c-1.4-.413-1.4-2.397 0-2.81l.34-.1a1.464 1.464 0 0 1 .872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 1 0-5.86 2.929 2.929 0 0 1 0 5.858z"/></svg>
                 </button>
             </div>
-            <!-- 단어 표시 및 입력 영역 -->
             <div class="flex-grow flex flex-col items-center justify-center">
                 <div class="w-full flex-grow flex flex-col items-center justify-center bg-slate-50 rounded-lg p-8">
                     <div class="relative flex items-center">
@@ -123,8 +75,6 @@
                     <div id="upcoming-words" class="mt-6 text-xl text-gray-400 font-mono tracking-wider h-8"></div>
                 </div>
             </div>
-
-            <!-- 모달 영역 -->
             <div id="modal-container">
                 <div id="start-modal" class="absolute inset-0 bg-white bg-opacity-95 flex items-center justify-center z-20 rounded-xl">
                     <div class="text-center">
@@ -155,17 +105,25 @@
                             </div>
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold mb-2">단어 목록</h3>
+                            <h3 class="text-lg font-semibold mb-2">기본 단어 목록</h3>
                             <div id="category-options" class="flex flex-wrap gap-2"></div>
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold mb-2">사용자 정의 단어</h3>
-                            <textarea id="custom-words-input" class="w-full h-32 p-2 border rounded-md focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" placeholder="예시)&#10;apple,사과&#10;banana,바나나"></textarea>
-                            <p class="text-sm text-slate-500 mt-1">한 줄에 하나씩 '영어,한글뜻' 형식으로 입력하세요. 사용자 정의 단어 입력 시 위 단어 목록은 무시됩니다.</p>
+                            <h3 class="text-lg font-semibold mb-2">나만의 단어장 관리</h3>
+                            <div class="flex gap-2 mb-2">
+                                <input type="text" id="custom-list-name" class="flex-grow p-2 border rounded-md focus:outline-none focus:border-indigo-500" placeholder="단어장 이름">
+                                <button id="save-list-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">저장</button>
+                            </div>
+                            <textarea id="custom-words-input" class="w-full h-24 p-2 border rounded-md focus:outline-none focus:border-indigo-500" placeholder="예시)&#10;apple,사과&#10;banana,바나나"></textarea>
+                            
+                            <h4 class="text-md font-semibold mt-4 mb-2">저장된 목록</h4>
+                            <div id="saved-lists-container" class="w-full h-24 p-2 border rounded-md overflow-y-auto bg-slate-100">
+                                <p class="text-slate-400">저장된 단어장이 없습니다.</p>
+                            </div>
                         </div>
                     </div>
                     <div class="mt-8 flex gap-4">
-                        <button id="save-settings-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg">저장하고 다시 시작</button>
+                        <button id="start-game-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-6 rounded-lg">선택한 설정으로 시작</button>
                         <button id="close-settings-btn" class="bg-slate-300 hover:bg-slate-400 text-slate-800 font-bold py-2 px-6 rounded-lg">닫기</button>
                     </div>
                 </div>
@@ -173,7 +131,12 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        // Firebase SDK
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, getDoc, getDocs, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
         // --- DOM 요소 ---
         const typingArea = document.getElementById('typing-area');
         const scoreDisplay = document.getElementById('score');
@@ -187,8 +150,9 @@
         const settingsBtn = document.getElementById('settings-btn');
         const startBtn = document.getElementById('start-btn');
         const restartBtn = document.getElementById('restart-btn');
-        const saveSettingsBtn = document.getElementById('save-settings-btn');
+        const startGameBtn = document.getElementById('start-game-btn');
         const closeSettingsBtn = document.getElementById('close-settings-btn');
+        const saveListBtn = document.getElementById('save-list-btn');
         const startModal = document.getElementById('start-modal');
         const gameOverScreen = document.getElementById('game-over-screen');
         const settingsModal = document.getElementById('settings-modal');
@@ -196,7 +160,25 @@
         const finalPeakWpmDisplay = document.getElementById('final-peak-wpm');
         const finalAccuracyDisplay = document.getElementById('final-accuracy');
         const customWordsInput = document.getElementById('custom-words-input');
+        const customListNameInput = document.getElementById('custom-list-name');
         const categoryOptions = document.getElementById('category-options');
+        const savedListsContainer = document.getElementById('saved-lists-container');
+        const dbStatusDot = document.getElementById('db-status-dot');
+        const dbStatusText = document.getElementById('db-status-text');
+
+        // --- Firebase 설정 ---
+        let db, auth, userId, unsubscribeLists;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'typing-game-default';
+        
+        try {
+            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+        } catch (e) {
+            console.error("Firebase 초기화 실패. 일부 기능이 작동하지 않을 수 있습니다.", e);
+            updateDbStatus('error', '연결 실패');
+        }
 
         // --- 단어 데이터 ---
         const wordData = {
@@ -223,7 +205,8 @@
         restartBtn.addEventListener('click', startGame);
         settingsBtn.addEventListener('click', openSettings);
         closeSettingsBtn.addEventListener('click', closeSettings);
-        saveSettingsBtn.addEventListener('click', saveSettings);
+        startGameBtn.addEventListener('click', applySettingsAndStart);
+        saveListBtn.addEventListener('click', saveCurrentList);
         typingArea.addEventListener('click', () => typingArea.focus());
         document.addEventListener('keydown', handleKeyPress);
         speakBtn.addEventListener('click', () => {
@@ -231,8 +214,16 @@
         });
 
         // --- 함수 ---
+        function isModalVisible() {
+            return !startModal.classList.contains('hidden') || 
+                   !gameOverScreen.classList.contains('hidden') || 
+                   !settingsModal.classList.contains('hidden');
+        }
+
         function initialize() {
-            Object.keys(wordData).forEach(category => {
+            // 기본 카테고리 라디오 버튼 생성
+            const defaultCategories = Object.keys(wordData);
+            defaultCategories.forEach(category => {
                 const label = document.createElement('label');
                 label.className = "flex items-center gap-2 p-2 border rounded-md cursor-pointer";
                 const input = document.createElement('input');
@@ -242,10 +233,171 @@
                 label.append(category);
                 categoryOptions.appendChild(label);
             });
+            // 사용자 정의 카테고리 라디오 버튼 추가
+            const customLabel = document.createElement('label');
+            customLabel.className = "flex items-center gap-2 p-2 border rounded-md cursor-pointer";
+            const customInput = document.createElement('input');
+            customInput.type = 'radio'; customInput.name = 'category'; customInput.value = '사용자 정의';
+            customLabel.appendChild(customInput);
+            customLabel.append('나만의 단어장');
+            categoryOptions.appendChild(customLabel);
+
+
             window.addEventListener('click', () => {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }, { once: true });
+
+            if(auth) {
+                onAuthStateChanged(auth, user => {
+                    if (user) {
+                        userId = user.uid;
+                        updateDbStatus('connected', '자동 저장');
+                        listenForCustomWordLists();
+                    } else {
+                        signInAnonymously(auth).catch(error => {
+                            console.error("익명 로그인 실패:", error);
+                            updateDbStatus('error', '연결 실패');
+                        });
+                    }
+                });
+            }
         }
+
+        function updateDbStatus(status, text) {
+            dbStatusText.textContent = text;
+            if (status === 'connected') dbStatusDot.style.backgroundColor = '#22c55e'; // green-500
+            else if (status === 'saving') dbStatusDot.style.backgroundColor = '#f59e0b'; // amber-500
+            else dbStatusDot.style.backgroundColor = '#ef4444'; // red-500
+        }
+
+        function listenForCustomWordLists() {
+            if (!userId) return;
+            const listsCollectionRef = collection(db, "artifacts", appId, "users", userId, "customWordLists");
+            
+            if (unsubscribeLists) unsubscribeLists(); // 이전 리스너 해제
+
+            unsubscribeLists = onSnapshot(listsCollectionRef, (querySnapshot) => {
+                const lists = [];
+                querySnapshot.forEach((doc) => {
+                    lists.push({ id: doc.id, ...doc.data() });
+                });
+                displaySavedLists(lists);
+            }, (error) => {
+                console.error("단어장 목록 실시간 업데이트 실패:", error);
+            });
+        }
+
+        function displaySavedLists(lists) {
+            savedListsContainer.innerHTML = '';
+            if (lists.length === 0) {
+                savedListsContainer.innerHTML = '<p class="text-slate-400">저장된 단어장이 없습니다.</p>';
+                return;
+            }
+            lists.forEach(list => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-2 hover:bg-slate-200 rounded-md';
+                div.innerHTML = `
+                    <span class="truncate pr-2">${list.id}</span>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <button data-list-id="${list.id}" class="load-btn text-xs bg-green-500 text-white px-2 py-1 rounded">불러오기</button>
+                        <button data-list-id="${list.id}" class="delete-btn text-xs bg-red-500 text-white px-2 py-1 rounded">삭제</button>
+                    </div>
+                `;
+                savedListsContainer.appendChild(div);
+            });
+
+            document.querySelectorAll('.load-btn').forEach(btn => btn.addEventListener('click', (e) => loadList(e.target.dataset.listId)));
+            document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', (e) => deleteList(e.target.dataset.listId)));
+        }
+        
+        async function loadList(listId) {
+            if (!userId) return;
+            const docRef = doc(db, "artifacts", appId, "users", userId, "customWordLists", listId);
+            try {
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const words = docSnap.data().words || [];
+                    customListNameInput.value = listId;
+                    customWordsInput.value = words.map(w => `${w.en},${w.kr}`).join('\n');
+                    document.querySelector('input[name="category"][value="사용자 정의"]').checked = true;
+                }
+            } catch (error) {
+                console.error("단어장 불러오기 실패:", error);
+            }
+        }
+
+        async function deleteList(listId) {
+            if (!userId || !confirm(`'${listId}' 단어장을 정말 삭제하시겠습니까?`)) return;
+            const docRef = doc(db, "artifacts", appId, "users", userId, "customWordLists", listId);
+            try {
+                await deleteDoc(docRef);
+            } catch (error) {
+                console.error("단어장 삭제 실패:", error);
+            }
+        }
+
+        async function saveCurrentList() {
+            if (!userId) return;
+            const listName = customListNameInput.value.trim();
+            if (!listName) {
+                alert("단어장 이름을 입력해주세요.");
+                return;
+            }
+            
+            const customWordsText = customWordsInput.value.trim();
+            const parsedWords = customWordsText.split('\n').map(line => {
+                const parts = line.split(',');
+                if (parts.length === 2 && parts[0].trim() && parts[1].trim()) {
+                    return { en: parts[0].trim(), kr: parts[1].trim() };
+                }
+                return null;
+            }).filter(Boolean);
+
+            if (parsedWords.length === 0) {
+                alert("저장할 단어가 없거나 형식이 올바르지 않습니다.");
+                return;
+            }
+
+            updateDbStatus('saving', '저장중...');
+            const docRef = doc(db, "artifacts", appId, "users", userId, "customWordLists", listName);
+            try {
+                await setDoc(docRef, { words: parsedWords });
+                updateDbStatus('connected', '자동 저장');
+            } catch (error) {
+                console.error("단어장 저장 실패:", error);
+                updateDbStatus('error', '저장 실패');
+            }
+        }
+
+        function applySettingsAndStart() {
+            timeLimit = parseInt(document.querySelector('input[name="time"]:checked').value, 10);
+            const selectedCategory = document.querySelector('input[name="category"]:checked').value;
+
+            if (selectedCategory === '사용자 정의') {
+                 const customWordsText = customWordsInput.value.trim();
+                 const parsedWords = customWordsText.split('\n').map(line => {
+                    const parts = line.split(',');
+                    if (parts.length === 2 && parts[0].trim() && parts[1].trim()) {
+                        return { en: parts[0].trim(), kr: parts[1].trim() };
+                    }
+                    return null;
+                }).filter(Boolean);
+
+                if(parsedWords.length > 0) {
+                    wordData['사용자 정의'] = parsedWords;
+                    currentCategory = '사용자 정의';
+                } else {
+                    alert('사용자 정의 단어 목록이 비어있습니다. 기본 단어 목록으로 시작합니다.');
+                    currentCategory = '초등 공통';
+                }
+            } else {
+                 currentCategory = selectedCategory;
+            }
+            
+            closeSettings();
+            startGame();
+        }
+
 
         function playErrorSound() {
             if (!audioCtx) return;
@@ -283,31 +435,6 @@
             settingsModal.classList.remove('flex');
         }
 
-        function saveSettings() {
-            timeLimit = parseInt(document.querySelector('input[name="time"]:checked').value, 10);
-            const customWordsText = customWordsInput.value.trim();
-            if (customWordsText) {
-                currentCategory = '사용자 정의';
-                const parsedWords = customWordsText.split('\n').map(line => {
-                    const parts = line.split(',');
-                    if (parts.length === 2 && parts[0].trim() && parts[1].trim()) {
-                        return { en: parts[0].trim(), kr: parts[1].trim() };
-                    }
-                    return null;
-                }).filter(Boolean);
-                if (parsedWords.length > 0) {
-                    wordData['사용자 정의'] = parsedWords;
-                } else {
-                    alert('사용자 정의 단어 형식이 올바르지 않습니다. 기본 단어 목록으로 시작합니다.');
-                    currentCategory = '초등 공통';
-                }
-            } else {
-                 currentCategory = document.querySelector('input[name="category"]:checked').value;
-            }
-            closeSettings();
-            startGame();
-        }
-
         function startGame() {
             score = 0; time = 0; typedIndex = 0;
             totalTypedChars = 0; totalCorrectChars = 0; peakWpm = 0;
@@ -318,7 +445,7 @@
             wpmDisplay.textContent = 0;
             peakWpmDisplay.textContent = 0;
             
-            wordsQueue = [...wordData[currentCategory]].sort(() => 0.5 - Math.random());
+            wordsQueue = [...(wordData[currentCategory] || wordData['초등 공통'])].sort(() => 0.5 - Math.random());
             if (wordsQueue.length === 0) {
                 alert('선택된 단어 목록이 비어있습니다. 설정에서 단어를 추가해주세요.');
                 openSettings(); return;
@@ -326,7 +453,7 @@
 
             loadNextWord();
 
-            startModal.style.display = 'none';
+            startModal.classList.add('hidden');
             gameOverScreen.classList.add('hidden');
             typingArea.focus();
 
@@ -364,7 +491,7 @@
         }
 
         function handleKeyPress(e) {
-            if (!isGameActive || e.key.length > 1 && e.key !== 'Backspace') return;
+            if (isModalVisible() || !isGameActive || e.key.length > 1 && e.key !== 'Backspace') return;
             e.preventDefault();
 
             const charSpans = typingArea.querySelectorAll('.char');
