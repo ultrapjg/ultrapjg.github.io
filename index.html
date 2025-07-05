@@ -17,10 +17,10 @@
             25% { transform: translateX(-2px); }
             75% { transform: translateX(2px); }
         }
-        #custom-words-input::-webkit-scrollbar, #saved-lists-container::-webkit-scrollbar { width: 8px; }
-        #custom-words-input::-webkit-scrollbar-track, #saved-lists-container::-webkit-scrollbar-track { background: #f1f5f9; }
-        #custom-words-input::-webkit-scrollbar-thumb, #saved-lists-container::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-        #custom-words-input::-webkit-scrollbar-thumb:hover, #saved-lists-container::-webkit-scrollbar-thumb:hover { background: #64748b; }
+        #custom-words-input::-webkit-scrollbar { width: 8px; }
+        #custom-words-input::-webkit-scrollbar-track { background: #f1f5f9; }
+        #custom-words-input::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        #custom-words-input::-webkit-scrollbar-thumb:hover { background: #64748b; }
         #typing-area { display: flex; align-items: center; justify-content: center; padding: 1rem; border: 2px solid #cbd5e1; border-radius: 0.5rem; min-height: 80px; cursor: text; }
         #typing-area .char { font-size: 2.25rem; font-weight: 700; transition: color 0.1s, transform 0.1s; }
         #typing-area .char-placeholder { color: #d1d5db; }
@@ -28,7 +28,6 @@
         @keyframes blink { 50% { border-bottom-color: transparent; } }
         #typing-area .char-correct { color: #1f2937; }
         #typing-area .char-incorrect { color: #ef4444; transform: scale(1.1); }
-        #db-status-dot { width: 10px; height: 10px; border-radius: 50%; transition: background-color 0.5s; }
     </style>
 </head>
 <body class="bg-slate-100 text-gray-800 flex items-center justify-center min-h-screen p-4">
@@ -37,13 +36,7 @@
         
         <!-- 왼쪽 정보 패널 -->
         <div class="w-full md:w-64 bg-slate-50 p-6 rounded-lg flex flex-col gap-6 order-2 md:order-1">
-            <div class="flex justify-between items-center border-b pb-3">
-                 <h2 class="text-xl font-bold text-slate-700">진행 통계</h2>
-                 <div id="db-status" class="flex items-center gap-2 text-sm text-slate-400">
-                     <div id="db-status-dot" class="bg-gray-400"></div>
-                     <span id="db-status-text">연결중</span>
-                 </div>
-            </div>
+            <h2 class="text-xl font-bold text-slate-700 border-b pb-3">진행 통계</h2>
             <div class="space-y-4 text-lg flex-grow">
                 <div><p class="text-slate-500">진행시간</p><p><span id="timer" class="font-bold text-indigo-600 text-2xl">0</span> s</p></div>
                 <div><p class="text-slate-500">현재타수(타/분)</p><p><span id="wpm" class="font-bold text-indigo-600 text-2xl">0</span></p></div>
@@ -51,18 +44,7 @@
                 <div><p class="text-slate-500">정확도(%)</p><p><span id="accuracy" class="font-bold text-indigo-600 text-2xl">100</span> %</p></div>
                 <div><p class="text-slate-500">점수</p><p><span id="score" class="font-bold text-indigo-600 text-2xl">0</span></p></div>
             </div>
-            <div class="mt-auto pt-4 space-y-2">
-                 <div id="user-profile" class="hidden items-center gap-3 p-2 rounded-lg bg-slate-200">
-                    <div class="flex-grow truncate">
-                        <p id="user-email" class="font-semibold text-sm truncate"></p>
-                        <button id="logout-btn" class="text-xs text-red-500 hover:underline">로그아웃</button>
-                    </div>
-                </div>
-                <button id="auth-btn" class="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white hover:bg-indigo-700 font-bold py-2 px-4 rounded-lg">
-                    <span>로그인 / 회원가입</span>
-                </button>
-                <p class="text-xs text-slate-400 text-center">Version 2.3.0</p>
-            </div>
+            <p class="text-xs text-slate-400 text-center mt-auto pt-4">Version 1.1.0</p>
         </div>
 
         <!-- 오른쪽 게임 영역 -->
@@ -121,17 +103,12 @@
                             <div id="category-options" class="flex flex-wrap gap-2"></div>
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold mb-2">나만의 단어장 관리</h3>
-                            <div class="flex gap-2 mb-2">
-                                <input type="text" id="custom-list-name" class="flex-grow p-2 border rounded-md focus:outline-none focus:border-indigo-500" placeholder="단어장 이름">
-                                <button id="save-list-btn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg">저장</button>
+                            <div class="flex justify-between items-center mb-2">
+                                <h3 class="text-lg font-semibold">나만의 단어장 (현재 세션에만 적용)</h3>
+                                <button id="load-file-btn" class="text-sm bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded-lg">파일에서 불러오기</button>
+                                <input type="file" id="file-input" class="hidden" accept=".txt">
                             </div>
-                            <textarea id="custom-words-input" class="w-full h-24 p-2 border rounded-md focus:outline-none focus:border-indigo-500" placeholder="예시)&#10;apple,사과&#10;banana,바나나"></textarea>
-                            
-                            <h4 class="text-md font-semibold mt-4 mb-2">저장된 목록</h4>
-                            <div id="saved-lists-container" class="w-full h-24 p-2 border rounded-md overflow-y-auto bg-slate-100">
-                                <p class="text-slate-400">목록 로딩 중...</p>
-                            </div>
+                            <textarea id="custom-words-input" class="w-full h-24 p-2 border rounded-md focus:outline-none focus:border-indigo-500" placeholder="예시)&#10;apple,사과&#10;banana 사과&#10;cherry (탭) 체리"></textarea>
                         </div>
                     </div>
                     <div class="mt-8 flex gap-4">
@@ -139,57 +116,11 @@
                         <button id="close-settings-btn" class="bg-slate-300 hover:bg-slate-400 text-slate-800 font-bold py-2 px-6 rounded-lg">닫기</button>
                     </div>
                 </div>
-                <!-- 로그인/회원가입 모달 -->
-                <div id="auth-modal" class="absolute inset-0 bg-black bg-opacity-50 flex-col items-center justify-center z-30 rounded-xl hidden">
-                    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 id="auth-title" class="text-2xl font-bold">로그인</h2>
-                            <button id="close-auth-modal-btn" class="text-2xl text-slate-500 hover:text-slate-800">&times;</button>
-                        </div>
-                        <p id="auth-error" class="text-red-500 text-sm mb-4 h-5"></p>
-                        <!-- 로그인 폼 -->
-                        <form id="login-form">
-                            <div class="mb-4">
-                                <label for="login-email" class="block text-sm font-medium text-slate-700">이메일</label>
-                                <input type="email" id="login-email" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <div class="mb-6">
-                                <label for="login-password" class="block text-sm font-medium text-slate-700">비밀번호</label>
-                                <input type="password" id="login-password" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg">로그인</button>
-                        </form>
-                        <!-- 회원가입 폼 -->
-                        <form id="signup-form" class="hidden">
-                            <div class="mb-4">
-                                <label for="signup-email" class="block text-sm font-medium text-slate-700">이메일</label>
-                                <input type="email" id="signup-email" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <div class="mb-4">
-                                <label for="signup-password" class="block text-sm font-medium text-slate-700">비밀번호</label>
-                                <input type="password" id="signup-password" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                             <div class="mb-6">
-                                <label for="signup-password-confirm" class="block text-sm font-medium text-slate-700">비밀번호 확인</label>
-                                <input type="password" id="signup-password-confirm" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500">
-                            </div>
-                            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">회원가입</button>
-                        </form>
-                        <p class="mt-4 text-center text-sm">
-                            <a href="#" id="toggle-auth-form" class="font-medium text-indigo-600 hover:text-indigo-500">계정이 없으신가요? 회원가입</a>
-                        </p>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        // Firebase SDK
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, collection, getDoc, getDocs, setDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
+    <script>
         // --- DOM 요소 ---
         const typingArea = document.getElementById('typing-area');
         const scoreDisplay = document.getElementById('score');
@@ -205,7 +136,6 @@
         const restartBtn = document.getElementById('restart-btn');
         const startGameBtn = document.getElementById('start-game-btn');
         const closeSettingsBtn = document.getElementById('close-settings-btn');
-        const saveListBtn = document.getElementById('save-list-btn');
         const startModal = document.getElementById('start-modal');
         const gameOverScreen = document.getElementById('game-over-screen');
         const settingsModal = document.getElementById('settings-modal');
@@ -213,46 +143,18 @@
         const finalPeakWpmDisplay = document.getElementById('final-peak-wpm');
         const finalAccuracyDisplay = document.getElementById('final-accuracy');
         const customWordsInput = document.getElementById('custom-words-input');
-        const customListNameInput = document.getElementById('custom-list-name');
         const categoryOptions = document.getElementById('category-options');
-        const savedListsContainer = document.getElementById('saved-lists-container');
-        const dbStatusDot = document.getElementById('db-status-dot');
-        const dbStatusText = document.getElementById('db-status-text');
-        const authBtn = document.getElementById('auth-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-        const userProfileDiv = document.getElementById('user-profile');
-        const userEmailSpan = document.getElementById('user-email');
-        const authModal = document.getElementById('auth-modal');
-        const closeAuthModalBtn = document.getElementById('close-auth-modal-btn');
-        const loginForm = document.getElementById('login-form');
-        const signupForm = document.getElementById('signup-form');
-        const toggleAuthFormLink = document.getElementById('toggle-auth-form');
-        const authTitle = document.getElementById('auth-title');
-        const authError = document.getElementById('auth-error');
-
-        // --- Firebase 설정 ---
-        let db, auth, userId, unsubscribeLists;
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'typing-game-default';
-        
-        try {
-            const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-        } catch (e) {
-            console.error("Firebase 초기화 실패. 일부 기능이 작동하지 않을 수 있습니다.", e);
-            updateDbStatus('error', '연결 실패');
-        }
+        const loadFileBtn = document.getElementById('load-file-btn');
+        const fileInput = document.getElementById('file-input');
 
         // --- 단어 데이터 ---
-        const baseWordData = {
+        const wordData = {
             '초등 공통': [ { en: "apple", kr: "사과" }, { en: "banana", kr: "바나나" }, { en: "cat", kr: "고양이" }, { en: "dog", kr: "개" }, { en: "book", kr: "책" }, { en: "desk", kr: "책상" }, { en: "chair", kr: "의자" }, { en: "red", kr: "빨간색" } ],
             '초3': [ { en: "ant", kr: "개미" }, { en: "bed", kr: "침대" }, { en: "cup", kr: "컵" }, { en: "egg", kr: "달걀" }, { en: "fat", kr: "뚱뚱한" }, { en: "good", kr: "좋은" }, { en: "hot", kr: "더운" }, { en: "ink", kr: "잉크" } ],
             '초4': [ { en: "ball", kr: "공" }, { en: "cold", kr: "추운" }, { en: "door", kr: "문" }, { en: "face", kr: "얼굴" }, { en: "game", kr: "게임" }, { en: "hand", kr: "손" }, { en: "jump", kr: "뛰다" }, { en: "kind", kr: "친절한" } ],
             '초5': [ { en: "animal", kr: "동물" }, { en: "blue", kr: "파란색" }, { en: "class", kr: "수업" }, { en: "drink", kr: "마시다" }, { en: "english", kr: "영어" }, { en: "family", kr: "가족" }, { en: "great", kr: "훌륭한" }, { en: "happy", kr: "행복한" } ],
             '초6': [ { en: "always", kr: "항상" }, { en: "because", kr: "왜냐하면" }, { en: "country", kr: "나라" }, { en: "different", kr: "다른" }, { en: "enjoy", kr: "즐기다" }, { en: "favorite", kr: "가장 좋아하는" }, { en: "group", kr: "그룹" }, { en: "hobby", kr: "취미" } ]
         };
-        let wordData = { ...baseWordData };
 
         // --- 게임 상태 및 설정 ---
         let score = 0, time = 0, typedIndex = 0;
@@ -271,26 +173,40 @@
         settingsBtn.addEventListener('click', openSettings);
         closeSettingsBtn.addEventListener('click', closeSettings);
         startGameBtn.addEventListener('click', applySettingsAndStart);
-        saveListBtn.addEventListener('click', saveCurrentList);
         typingArea.addEventListener('click', () => typingArea.focus());
         document.addEventListener('keydown', handleKeyPress);
         speakBtn.addEventListener('click', () => {
             if (currentWord.en && isGameActive) speak(currentWord.en);
         });
-        authBtn.addEventListener('click', () => authModal.classList.remove('hidden'));
-        logoutBtn.addEventListener('click', signOutUser);
-        closeAuthModalBtn.addEventListener('click', () => authModal.classList.add('hidden'));
-        loginForm.addEventListener('submit', handleLogin);
-        signupForm.addEventListener('submit', handleSignUp);
-        toggleAuthFormLink.addEventListener('click', toggleAuthForms);
-
-
+        loadFileBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelect);
+        
         // --- 함수 ---
         function isModalVisible() {
             return !startModal.classList.contains('hidden') || 
                    !gameOverScreen.classList.contains('hidden') || 
-                   !settingsModal.classList.contains('hidden') ||
-                   !authModal.classList.contains('hidden');
+                   !settingsModal.classList.contains('hidden');
+        }
+        
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const contents = e.target.result;
+                customWordsInput.value = contents;
+                
+                const customRadio = document.querySelector('input[name="category"][value="사용자 정의"]');
+                if (customRadio) {
+                    customRadio.checked = true;
+                }
+                alert(`'${file.name}' 파일을 성공적으로 불러왔습니다. '선택한 설정으로 시작' 버튼을 눌러주세요.`);
+            };
+            reader.readAsText(file);
+            event.target.value = '';
         }
 
         function initialize() {
@@ -298,99 +214,6 @@
             window.addEventListener('click', () => {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             }, { once: true });
-
-            if(auth) {
-                onAuthStateChanged(auth, user => {
-                    if (user) {
-                        userId = user.uid;
-                        userEmailSpan.textContent = user.email;
-                        userProfileDiv.classList.remove('hidden');
-                        userProfileDiv.classList.add('flex');
-                        authBtn.classList.add('hidden');
-                        updateDbStatus('connected', '로그인 됨');
-                        listenForCustomWordLists();
-                    } else {
-                        userId = null;
-                        userProfileDiv.classList.add('hidden');
-                        userProfileDiv.classList.remove('flex');
-                        authBtn.classList.remove('hidden');
-                        updateDbStatus('error', '로그인 필요');
-                        if (unsubscribeLists) unsubscribeLists();
-                        wordData = { ...baseWordData };
-                        displaySavedLists([]);
-                        renderCategoryOptions();
-                    }
-                });
-            }
-        }
-        
-        async function handleLogin(e) {
-            e.preventDefault();
-            const email = loginForm['login-email'].value;
-            const password = loginForm['login-password'].value;
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-                authModal.classList.add('hidden');
-                loginForm.reset();
-            } catch (error) {
-                authError.textContent = getAuthErrorMessage(error.code);
-            }
-        }
-
-        async function handleSignUp(e) {
-            e.preventDefault();
-            const email = signupForm['signup-email'].value;
-            const password = signupForm['signup-password'].value;
-            const confirmPassword = signupForm['signup-password-confirm'].value;
-
-            if (password !== confirmPassword) {
-                authError.textContent = "비밀번호가 일치하지 않습니다.";
-                return;
-            }
-            try {
-                await createUserWithEmailAndPassword(auth, email, password);
-                authModal.classList.add('hidden');
-                signupForm.reset();
-            } catch (error) {
-                authError.textContent = getAuthErrorMessage(error.code);
-            }
-        }
-
-        function toggleAuthForms(e) {
-            e.preventDefault();
-            authError.textContent = '';
-            if (loginForm.classList.contains('hidden')) {
-                loginForm.classList.remove('hidden');
-                signupForm.classList.add('hidden');
-                authTitle.textContent = '로그인';
-                toggleAuthFormLink.textContent = '계정이 없으신가요? 회원가입';
-            } else {
-                loginForm.classList.add('hidden');
-                signupForm.classList.remove('hidden');
-                authTitle.textContent = '회원가입';
-                toggleAuthFormLink.textContent = '이미 계정이 있으신가요? 로그인';
-            }
-        }
-        
-        function getAuthErrorMessage(code) {
-            switch (code) {
-                case 'auth/invalid-email': return '유효하지 않은 이메일 주소입니다.';
-                case 'auth/user-not-found': return '존재하지 않는 계정입니다.';
-                case 'auth/wrong-password': return '비밀번호가 틀렸습니다.';
-                case 'auth/email-already-in-use': return '이미 사용 중인 이메일입니다.';
-                case 'auth/weak-password': return '비밀번호는 6자 이상이어야 합니다.';
-                default: return '로그인/회원가입 중 오류가 발생했습니다.';
-            }
-        }
-
-
-        async function signOutUser() {
-            if (!auth) return;
-            try {
-                await signOut(auth);
-            } catch (error) {
-                console.error("로그아웃 실패:", error);
-            }
         }
 
         function renderCategoryOptions() {
@@ -406,114 +229,14 @@
                 label.append(category);
                 categoryOptions.appendChild(label);
             });
-        }
-
-        function updateDbStatus(status, text) {
-            dbStatusText.textContent = text;
-            if (status === 'connected') dbStatusDot.style.backgroundColor = '#22c55e'; // green-500
-            else if (status === 'saving') dbStatusDot.style.backgroundColor = '#f59e0b'; // amber-500
-            else dbStatusDot.style.backgroundColor = '#ef4444'; // red-500
-        }
-
-        function listenForCustomWordLists() {
-            if (!userId) return;
-            const listsCollectionRef = collection(db, "artifacts", appId, "users", userId, "customWordLists");
-            
-            if (unsubscribeLists) unsubscribeLists();
-
-            unsubscribeLists = onSnapshot(listsCollectionRef, (querySnapshot) => {
-                const customLists = {};
-                querySnapshot.forEach((doc) => {
-                    customLists[doc.id] = doc.data().words || [];
-                });
-                wordData = { ...baseWordData, ...customLists };
-                displaySavedLists(Object.keys(customLists));
-                renderCategoryOptions();
-            }, (error) => {
-                console.error("단어장 목록 실시간 업데이트 실패:", error);
-                savedListsContainer.innerHTML = '<p class="text-red-500">목록을 불러오지 못했습니다.</p>';
-            });
-        }
-
-        function displaySavedLists(listNames) {
-            savedListsContainer.innerHTML = '';
-            if (listNames.length === 0) {
-                savedListsContainer.innerHTML = '<p class="text-slate-400">저장된 단어장이 없습니다.</p>';
-                return;
-            }
-            listNames.forEach(listId => {
-                const div = document.createElement('div');
-                div.className = 'flex justify-between items-center p-2 hover:bg-slate-200 rounded-md';
-                div.innerHTML = `
-                    <span class="truncate pr-2">${listId}</span>
-                    <div class="flex gap-2 flex-shrink-0">
-                        <button data-list-id="${listId}" class="load-btn text-xs bg-green-500 text-white px-2 py-1 rounded">불러오기</button>
-                        <button data-list-id="${listId}" class="delete-btn text-xs bg-red-500 text-white px-2 py-1 rounded">삭제</button>
-                    </div>
-                `;
-                savedListsContainer.appendChild(div);
-            });
-
-            document.querySelectorAll('.load-btn').forEach(btn => btn.addEventListener('click', (e) => loadListToEditor(e.target.dataset.listId)));
-            document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', (e) => deleteList(e.target.dataset.listId)));
-        }
-        
-        function loadListToEditor(listId) {
-            const words = wordData[listId] || [];
-            customListNameInput.value = listId;
-            customWordsInput.value = words.map(w => `${w.en},${w.kr}`).join('\n');
-            const radioToSelect = document.querySelector(`input[name="category"][value="${listId}"]`);
-            if (radioToSelect) radioToSelect.checked = true;
-        }
-
-        async function deleteList(listId) {
-            if (!userId || !confirm(`'${listId}' 단어장을 정말 삭제하시겠습니까?`)) return;
-            const docRef = doc(db, "artifacts", appId, "users", userId, "customWordLists", listId);
-            try {
-                await deleteDoc(docRef);
-            } catch (error) {
-                console.error("단어장 삭제 실패:", error);
-            }
-        }
-
-        async function saveCurrentList() {
-            if (!userId) {
-                alert("단어장을 저장하려면 먼저 로그인해주세요.");
-                return;
-            }
-            const listName = customListNameInput.value.trim();
-            if (!listName) {
-                alert("단어장 이름을 입력해주세요.");
-                return;
-            }
-            if (baseWordData[listName]) {
-                alert("기본 단어장과 동일한 이름으로는 저장할 수 없습니다.");
-                return;
-            }
-            
-            const customWordsText = customWordsInput.value.trim();
-            const parsedWords = customWordsText.split('\n').map(line => {
-                const parts = line.split(',');
-                if (parts.length === 2 && parts[0].trim() && parts[1].trim()) {
-                    return { en: parts[0].trim(), kr: parts[1].trim() };
-                }
-                return null;
-            }).filter(Boolean);
-
-            if (parsedWords.length === 0) {
-                alert("저장할 단어가 없거나 형식이 올바르지 않습니다.");
-                return;
-            }
-
-            updateDbStatus('saving', '저장중...');
-            const docRef = doc(db, "artifacts", appId, "users", userId, "customWordLists", listName);
-            try {
-                await setDoc(docRef, { words: parsedWords });
-                updateDbStatus('connected', '로그인 됨');
-            } catch (error) {
-                console.error("단어장 저장 실패:", error);
-                updateDbStatus('error', '저장 실패');
-            }
+            // 사용자 정의 카테고리 라디오 버튼 추가
+            const customLabel = document.createElement('label');
+            customLabel.className = "flex items-center gap-2 p-2 border rounded-md cursor-pointer";
+            const customInput = document.createElement('input');
+            customInput.type = 'radio'; customInput.name = 'category'; customInput.value = '사용자 정의';
+            customLabel.appendChild(customInput);
+            customLabel.append('나만의 단어장');
+            categoryOptions.appendChild(customLabel);
         }
 
         function applySettingsAndStart() {
@@ -525,6 +248,33 @@
                 return;
             }
             currentCategory = selectedCategoryRadio.value;
+
+            if (currentCategory === '사용자 정의') {
+                const customWordsText = customWordsInput.value.trim();
+                const parsedWords = customWordsText.split(/[\r\n]+/) // Split by new lines
+                    .map(line => {
+                        line = line.trim();
+                        if (!line) return null;
+
+                        // 쉼표, 탭, 또는 2개 이상의 공백으로 구분
+                        const parts = line.split(/,|\t|  +/);
+                        const en = parts[0] ? parts[0].trim() : '';
+                        const kr = parts[1] ? parts[1].trim() : '';
+                        
+                        if (en) {
+                           return { en, kr };
+                        }
+                        return null;
+                    })
+                    .filter(Boolean); // null 값(빈 줄 등) 제거
+
+                if(parsedWords.length > 0) {
+                    wordData['사용자 정의'] = parsedWords;
+                } else {
+                    alert('불러온 파일이나 입력된 내용에서 유효한 단어를 찾을 수 없습니다.\n기본 "초등 공통" 단어로 게임을 시작합니다.');
+                    currentCategory = '초등 공통';
+                }
+            }
             
             closeSettings();
             startGame();
@@ -578,13 +328,16 @@
             
             wordsQueue = [...(wordData[currentCategory] || wordData['초등 공통'])].sort(() => 0.5 - Math.random());
             if (wordsQueue.length === 0) {
-                alert('선택된 단어 목록이 비어있습니다. 설정에서 단어를 추가해주세요.');
+                alert('선택된 단어 목록이 비어있어 게임을 시작할 수 없습니다. 설정에서 단어를 추가하거나 다른 목록을 선택해주세요.');
                 openSettings(); return;
             }
 
             startModal.classList.add('hidden');
             gameOverScreen.classList.add('hidden');
             settingsModal.classList.add('hidden');
+            
+            loadNextWord(); // 첫 단어 로드
+
             typingArea.focus();
 
             clearInterval(gameInterval);
@@ -701,3 +454,4 @@
     </script>
 </body>
 </html>
+	
